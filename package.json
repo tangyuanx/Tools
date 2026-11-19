@@ -1,0 +1,88 @@
+{
+  "name": "tools-workbench",
+  "version": "0.1.0",
+  "description": "工具工作台 · 命令定向与日志采集",
+  "main": "electron/main.cjs",
+  "private": true,
+  "author": "tangyuanx",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "test:suite": "node scripts/test-suite.mjs",
+    "build:win": "node scripts/build-windows.mjs",
+    "build": "npm run build:win"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9",
+    "koffi": "3.3.2"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.64.0",
+    "ssh2": "1.17.0"
+  },
+  "type": "module",
+  "build": {
+    "appId": "com.tangyuanx.tools-workbench",
+    "productName": "Tools Workbench",
+    "directories": {
+      "output": "artifacts"
+    },
+    "asar": false,
+    "npmRebuild": false,
+    "files": [
+      "electron/**",
+      "src/**",
+      "assets/workbench.*",
+      "examples/**",
+      "README.md",
+      "!**/._*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/log-worker/LogCaptureWorker",
+        "to": "log-worker"
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "tangyuanx",
+      "repo": "Tools"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "executableName": "tools-workbench",
+      "icon": "assets/workbench.ico"
+    },
+    "nsis": {
+      "artifactName": "Tools-Workbench-${version}-Windows-x64-Setup.${ext}",
+      "shortcutName": "工具工作台",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "assets/workbench.ico",
+      "uninstallerIcon": "assets/workbench.ico"
+    },
+    "extraFiles": [
+      {
+        "from": "examples",
+        "to": ".",
+        "filter": [
+          "快速验证.txt"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'"><title>工具工作台</title>
+<link rel="icon" type="image/svg+xml" href="../assets/workbench.svg"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="suite.css">
+</head>
+<body data-tool="command">
+<div class="suite-shell">
+  <header class="window-title suite-titlebar">
+    <div class="brand suite-brand">
+      <img class="suite-mark" src="../assets/workbench.png" alt="">
+      <span class="suite-name">工具工作台</span><h1 id="activeToolName">命令定向</h1>
+    </div>
+    <div class="title-right">
+      <button id="pinButton" class="icon-button pin-button" title="窗口置顶" aria-label="窗口置顶" aria-pressed="false" data-icon="pin"></button>
+      <button id="updateButton" class="demo-badge update-version" title="手动检查更新" aria-label="检查软件更新">检查更新</button>
+      <button id="helpButton" class="icon-button" aria-label="使用说明" title="使用说明" data-icon="help"></button>
+      <div class="window-controls" role="group" aria-label="窗口操作">
+        <button id="minimizeWindow" class="window-control" aria-label="最小化窗口" title="最小化" data-icon="minimize"></button>
+        <button id="maximizeWindow" class="window-control" aria-label="最大化窗口" title="最大化" data-icon="maximize"></button>
+        <button id="closeWindow" class="window-control window-close" aria-label="关闭窗口" title="关闭" data-icon="close"></button>
+      </div>
+    </div>
+  </header>
+  <nav class="suite-rail" aria-label="工具导航">
+    <div class="suite-shortcuts" id="toolShortcuts" role="tablist" aria-label="快速切换工具" aria-orientation="vertical"></div>
+    <hr class="suite-divider">
+    <button type="button" class="suite-tool-button" id="toolCatalogButton" popovertarget="toolCatalog" aria-label="全部工具" title="全部工具">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+    </button>
+    <span id="backgroundDot" class="suite-dot suite-background" hidden></span>
+    <span class="visually-hidden" id="backgroundStatus" role="status"></span>
+  </nav>
+  <main class="suite-content">
+    <section class="app-window suite-tool-panel" id="commandView" role="tabpanel" aria-labelledby="commandTab">
+  <header class="toolbar">
+    <button id="targetButton" class="target-button" title="按住后直接拖到目标输入区释放，无需长按等待；Windows MobaXterm 可拖到会话显示区" aria-label="选择发送目标"><span data-icon="crosshair"></span><span class="target-text"><span id="targetLabel">选择目标</span><span id="targetSession" class="target-session" hidden></span></span><span id="targetTag" class="tiny-tag">未绑定</span></button>
+    <span class="toolbar-divider"></span>
+    <div class="file-control"><button id="fileButton" class="file-button" aria-haspopup="menu" aria-expanded="false"><span data-icon="file"></span><span id="fileName">未打开文件</span><span class="chevron" data-icon="chevron"></span></button><div id="fileMenu" class="file-menu" role="menu" hidden></div></div>
+  </header>
+  <div class="workspace">
+    <nav class="scene-sidebar" aria-label="场景目录"><div id="sceneList" class="scene-list"></div><p id="sceneEmpty" class="scene-empty" hidden>暂无场景</p></nav>
+    <section id="editorArea" class="editor-area" aria-label="命令编辑器">
+      <div id="findBar" class="find-bar" hidden><span data-icon="search"></span><input id="findInput" aria-label="查找文本" placeholder="查找文本…"><span id="findCount" class="find-count" role="status" aria-live="polite" aria-atomic="true">0 / 0</span><button id="findPrevious" class="icon-button" aria-label="上一处匹配" title="上一处 · Shift+Enter" data-icon="up" disabled></button><button id="findNext" class="icon-button" aria-label="下一处匹配" title="下一处 · Enter" data-icon="down" disabled></button><button id="findClose" class="icon-button" aria-label="关闭查找" title="关闭 · Esc" data-icon="close"></button></div>
+      <div id="editorScroller" class="editor-scroller"><div id="editorCanvas" class="editor-canvas"><div id="currentLine" class="current-line" aria-hidden="true"></div><div id="findLine" class="find-line" aria-hidden="true" hidden></div><pre id="syntaxText" class="syntax-text" aria-hidden="true"></pre><textarea id="editor" class="editor" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off" aria-label="TXT 命令文本"></textarea></div></div>
+      <div id="emptyState" class="empty-state" hidden><span data-icon="file"></span><p>从顶部文件菜单打开 TXT</p></div>
+    </section>
+    <aside class="action-sidebar" aria-label="发送操作">
+      <div class="send-controls">
+        <button id="sendButton" class="send-button" disabled><span data-icon="send"></span><span id="sendLabel">发送</span></button>
+        <button id="repeatButton" class="repeat-button secondary-button" disabled><span data-icon="repeat"></span><span id="repeatLabel">重复发送</span></button>
+        <div id="runControls" class="run-controls" hidden>
+          <button id="pauseButton" class="secondary-button"><span data-icon="pause"></span><span id="pauseLabel">暂停</span></button>
+          <button id="stopButton" class="secondary-button"><span data-icon="stop"></span><span>停止</span></button>
+        </div>
+      </div>
+      <button id="schedulesButton" class="secondary-button schedules-button"><span data-icon="repeat"></span><span>定时发送</span><span id="scheduleActiveCount" hidden></span></button>
+      <button id="settingsButton" class="rail-settings" title="发送设置"><span data-icon="sliders"></span><span>发送设置</span></button>
+    </aside>
+  </div>
+  <footer class="statusbar"><div class="status-group"><div class="status-message"><span id="statusIndicator" class="status-indicator"></span><span id="statusText" role="status" aria-live="polite">待选择目标</span></div><div class="editor-metadata"><span id="positionText">行 3，列 1</span><span id="selectionText" hidden></span><span class="meta-divider"></span><span id="encodingText">UTF-8</span><span id="newlineText">LF</span></div></div></footer>
+    </section>
+<section class="app-window suite-tool-panel collector-view" id="collectorView" role="tabpanel" aria-labelledby="collectorTab" hidden>
+  <header class="toolbar collector-toolbar">
+    <button type="button" id="logTarget" class="target-button collector-target" title="按住并拖到 MobaXterm 会话，松开绑定" aria-label="拖选目标会话">
+      <span data-icon="crosshair"></span>
+      <span class="target-text"><span id="logTargetTitle">拖选会话</span><span class="target-session" id="logTargetHint">目标会话</span></span>
+    </button>
+    <span class="toolbar-divider" aria-hidden="true"></span>
+    <div class="collector-destination">
+      <span data-icon="folder"></span>
+      <div class="collector-destination-text"><span class="collector-caption">保存到</span><button type="button" id="logOutputPath" title="复制保存目录" disabled>—</button></div>
+      <button type="button" id="logOutputChange" class="secondary-button" disabled>更改</button>
+    </div>
+    <button type="button" id="logAction" class="primary-button collector-action" disabled><span data-icon="play" id="logActionIcon"></span><span id="logActionText">开始采集</span></button>
+  </header>
+  <dl class="collector-stats" aria-label="采集统计">
+    <div><dt>日志行数</dt><dd id="logLineCount">0</dd></div>
+    <div><dt>日志大小</dt><dd id="logByteCount">0 B</dd></div>
+    <div><dt>采集时长</dt><dd id="logElapsed">00:00</dd></div>
+  </dl>
+  <section class="collector-workspace" aria-labelledby="logWorkspaceTitle">
+    <header class="collector-workspace-heading"><h2 id="logWorkspaceTitle">本次采集</h2><span id="logActivity" class="collector-caption"></span></header>
+    <div class="collector-state"><span class="suite-dot" id="logIndicator"></span><h3 id="logStage">正在连接</h3></div>
+    <p id="logMessage" class="collector-message" role="status"></p>
+    <button class="secondary-button collector-retry" id="logRetry" type="button" hidden>重新识别日志</button>
+    <button class="secondary-button collector-retry" id="logConnect" type="button" hidden>重新连接采集引擎</button>
+  </section>
+  <div class="collector-saved" id="logSaved" hidden>
+    <span data-icon="file"></span><button type="button" id="logSavedName" title="单击复制文件名，右键查看复制选项"></button>
+    <button class="secondary-button" id="logOpen" type="button">打开日志</button>
+  </div>
+  <footer class="statusbar collector-statusbar">
+    <div class="status-group"><div class="status-message"><span class="status-indicator" id="logFooterIndicator"></span><span id="logFooterStatus" role="status"></span></div><span id="logFooterSession"></span></div>
+  </footer>
+</section>
+  </main>
+</div>
+<section class="suite-catalog" id="toolCatalog" popover aria-labelledby="toolCatalogTitle">
+  <header><h2 id="toolCatalogTitle">全部工具</h2><label><span data-icon="search"></span><input type="search" id="toolSearch" aria-label="搜索工具" placeholder="搜索工具" autocomplete="off" autofocus></label></header>
+  <div class="suite-catalog-list" id="toolCatalogList"></div>
+  <p id="toolCatalogEmpty" class="suite-catalog-empty" role="status" hidden>没有匹配的工具</p>
+</section>
+<div class="suite-copy-menu" id="logCopyMenu" popover aria-label="复制日志信息">
+  <button type="button" id="logCopyAbsolute">复制绝对路径</button><button type="button" id="logCopyFilename">复制文件名</button>
+</div>
+<dialog id="logHelpDialog" class="dialog help-dialog" aria-labelledby="logHelpTitle">
+  <div class="dialog-heading"><h2 id="logHelpTitle">采集指定会话的日志</h2><button class="icon-button" data-close="logHelpDialog" aria-label="关闭说明" data-icon="close"></button></div>
+  <div class="help-content">
+    <p><strong>开启会话日志</strong>。在 MobaXterm 的 Settings → Configuration → Terminal 中启用 “Log terminal output to the following directory”，然后重新连接会话。</p>
+    <p><strong>拖选目标会话</strong>。按住「拖选会话」，拖到目标的显示区、输入区或同一会话页面后松开。分屏时选择目标所在的那一格。按 Esc 取消。</p>
+    <p><strong>保存与复制</strong>。点击「停止并保存」生成独立日志。单击日志名称复制文件名，右键可复制绝对路径。单击保存目录可复制路径。</p>
+  </div>
+  <div class="dialog-footer"><button class="primary-button" data-close="logHelpDialog">知道了</button></div>
+</dialog>
+<dialog id="schedulesDialog" class="dialog schedules-dialog" aria-labelledby="schedulesTitle">
+  <div class="dialog-heading"><div><h2 id="schedulesTitle">定时发送</h2></div><button class="icon-button" data-close="schedulesDialog" aria-label="关闭定时发送" data-icon="close"></button></div>
+  <div class="schedules-layout">
+    <section class="schedule-sidebar" aria-label="定时任务列表">
+      <div class="schedule-list-actions"><button id="scheduleNew" type="button"><span data-icon="plus"></span>新建任务</button><button id="scheduleGroupNew" type="button"><span data-icon="folderPlus"></span>新建分组</button></div>
+      <form id="scheduleGroupForm" class="schedule-group-form" hidden>
+        <label for="scheduleGroupName">组名</label><input id="scheduleGroupName" maxlength="80" required autocomplete="off">
+        <div class="schedule-group-actions"><button type="submit" class="secondary-button">保存组名</button><button id="scheduleGroupCancel" type="button">取消</button><button id="scheduleGroupDelete" type="button" hidden>删除组</button></div>
+        <p id="scheduleGroupError" class="schedule-error" role="alert" hidden></p>
+      </form>
+      <p id="scheduleEmpty">还没有定时任务</p><div id="scheduleList" class="schedule-list"></div>
+      <p id="scheduleOrderStatus" class="visually-hidden" role="status" aria-live="polite"></p>
+    </section>
+    <form id="scheduleForm" class="schedule-form">
+      <div class="schedule-editor">
+        <div class="schedule-editor-heading">
+          <input id="scheduleName" aria-label="任务名称" placeholder="任务名称" maxlength="80" required>
+          <button id="scheduleDelete" type="button" class="icon-button" data-icon="trash" aria-label="删除任务" title="删除任务" hidden></button>
+        </div>
+        <div class="schedule-command-field">
+          <label for="scheduleCommands">指令</label>
+          <textarea id="scheduleCommands" rows="5" spellcheck="false" placeholder="每行一条指令" required></textarea>
+        </div>
+      </div>
+      <div class="schedule-toolbar">
+        <div class="schedule-config" role="group" aria-label="发送配置">
+          <button type="button" id="scheduleTarget" class="schedule-target" aria-label="发送目标：未绑定" title="按住并拖到目标输入区"><span data-icon="crosshair"></span><span id="scheduleTargetLabel">未绑定</span></button>
+          <select id="scheduleGroup" aria-label="所属分组"><option value="">未分组</option></select>
+          <select id="scheduleMode" aria-label="定时方式"><option value="countdown">倒计时</option><option value="once">指定时间</option></select>
+          <div id="schedulePeriodRow" class="schedule-period"><input id="schedulePeriod" aria-label="等待时长" type="number" min="1" max="86400" step="1" value="5"><select id="scheduleUnit" aria-label="倒计时单位"><option value="1000">秒</option><option value="60000">分钟</option><option value="3600000">小时</option></select></div>
+          <div id="scheduleAtRow" class="schedule-at" hidden><input id="scheduleDate" type="date" aria-label="发送日期"><input id="scheduleHour" type="number" min="0" max="23" step="1" aria-label="时"><span>:</span><input id="scheduleMinute" type="number" min="0" max="59" step="1" aria-label="分"><span>:</span><input id="scheduleSecond" type="number" min="0" max="59" step="1" aria-label="秒"></div>
+          <select id="schedulePresets" aria-label="快捷时间"></select>
+        </div>
+        <p id="scheduleError" class="schedule-error" role="alert" hidden></p>
+        <div class="schedule-toolbar-actions">
+          <details id="scheduleOptions" class="schedule-options">
+            <summary>投递设置</summary>
+            <div class="schedule-field-row"><label for="scheduleEnter">每条指令后回车</label><input id="scheduleEnter" class="switch" type="checkbox" checked></div>
+            <div class="schedule-field-row"><label for="scheduleCommandInterval">命令间隔 · ms</label><input id="scheduleCommandInterval" type="number" min="50" max="600000" value="500" required></div>
+            <div class="schedule-field-row"><label for="scheduleCharacterInterval">字符间隔 · ms</label><input id="scheduleCharacterInterval" type="number" min="0" max="1000" value="2" required></div>
+          </details>
+          <div class="schedule-save-actions"><button id="scheduleSave" class="secondary-button" type="submit">保存为暂停</button><button id="scheduleStart" class="primary-button" type="submit">保存并启动</button></div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</dialog>
+<dialog id="settingsDialog" class="dialog settings-dialog" aria-labelledby="settingsTitle"><form id="settingsForm"><div class="dialog-heading"><div><h2 id="settingsTitle">发送设置</h2><p>调整命令的投递方式与节奏</p></div><button type="button" class="icon-button" data-close="settingsDialog" aria-label="关闭设置" data-icon="close"></button></div><div class="settings-body"><div class="setting-row"><div><label for="enterToggle">发送后回车</label><p>每条命令发送完成后按下 Enter</p></div><input id="enterToggle" class="switch" type="checkbox" checked></div><div class="setting-row"><div><label for="characterIntervalInput">字符间隔</label><p>单条命令内每个字符之间的等待时间；0 最快</p></div><div class="unit-input"><input id="characterIntervalInput" type="number" min="0" max="1000" value="2" required><span>ms</span></div></div><div class="setting-row"><div><label for="intervalInput">命令间隔</label><p>相邻命令与跨轮之间的等待时间</p></div><div class="unit-input"><input id="intervalInput" type="number" min="50" max="600000" value="500" required><span>ms</span></div></div><div class="setting-row"><div><label for="repeatSelect">重复发送模式</label><p>仅用于右侧「重复发送」按钮</p></div><select id="repeatSelect"><option value="count">指定次数</option><option value="loop" selected>持续循环</option></select></div><div id="roundsRow" class="setting-row" hidden><div><label for="roundsInput">发送轮数</label><p>每轮按顺序发送当前命令或选区</p></div><input id="roundsInput" class="number-input" type="number" min="1" max="100000" value="10" required></div><div class="setting-row prefix-row"><div><label for="prefixInput">整行注释前缀</label><p>用英文逗号分隔</p></div><input id="prefixInput" class="prefix-input" value="#, //, ;"></div><div class="setting-row theme-row"><label>界面主题</label><div class="segmented" role="group" aria-label="界面主题"><button type="button" data-theme="system" class="active">跟随系统</button><button type="button" data-theme="light">浅色</button><button type="button" data-theme="dark">深色</button></div></div></div><div class="dialog-footer"><span class="settings-footnote">普通「发送」只发送一轮；首条立即发送</span><button class="primary-button" type="submit">完成</button></div></form></dialog>
+<dialog id="targetDialog" class="dialog target-dialog" aria-labelledby="targetTitle"><div class="dialog-heading"><div><h2 id="targetTitle">绑定其他应用的输入区</h2><p>按住顶部「选择目标」直接拖到目标输入区后释放，无需长按等待。Windows MobaXterm 可拖到会话显示区。</p></div><button class="icon-button" data-close="targetDialog" aria-label="取消选择" data-icon="close"></button></div><div id="targetNoteRow" class="target-note-row" hidden><label for="targetAlias">目标备注</label><input id="targetAlias" maxlength="80" placeholder="例如：会话1 · UART"><p>仅修改显示名称，发送仍固定到原输入区。</p></div><div class="help-content"><p>选择实际的文本框或终端输入区。Windows MobaXterm 可拖到目标会话页面的显示区或输入区，分屏时拖到具体那一格会话内。绑定后点击命令，或选择多行，再按发送。MobaXterm 会显示绑定会话的连接 IP 和端口；无法确认地址时保留会话名称。MobaXterm / PuTTY 绑定到具体终端，会话切换后仍发送到原会话。支持系统页签识别的其他终端会先恢复绑定页签；无法区分会话时会提示。目标关闭、发送中会话或焦点改变、权限不足时，会停止剩余任务。</p><p>Mac 首次使用需在系统设置的「辅助功能」中添加并允许本应用，然后退出并重新打开应用。</p></div><div class="dialog-footer"><button id="accessibilityButton" class="secondary-button">打开辅助功能设置</button><button class="primary-button" data-close="targetDialog">知道了</button></div></dialog>
+<dialog id="updateDialog" class="dialog update-dialog" aria-labelledby="updateTitle"><div class="dialog-heading"><div><h2 id="updateTitle">软件更新</h2><p id="updateCurrent">当前版本</p></div><button class="icon-button" data-close="updateDialog" aria-label="关闭更新" data-icon="close"></button></div><div class="update-body"><p id="updateStatus" role="status" aria-live="polite">点击检查更新，从 GitHub 获取最新版本。</p><p id="updateHint" class="update-hint">仅在你点击时检查和下载。</p><progress id="updateProgress" max="100" value="0" hidden aria-label="升级包下载进度"></progress><section id="updateNotes" class="update-notes" hidden aria-label="版本更新说明"></section></div><div class="dialog-footer update-actions"><button id="checkUpdate" class="secondary-button">检查更新</button><button id="updateReleasePage" class="secondary-button" hidden>打开下载页面</button><button id="downloadUpdate" class="primary-button" hidden>下载更新</button><button id="installUpdate" class="primary-button" hidden>安装并重启</button></div></dialog>
+<dialog id="quitDialog" class="dialog close-dialog" aria-labelledby="quitTitle"><div class="dialog-heading"><div><h2 id="quitTitle">保存修改后退出？</h2><p id="quitDescription"></p></div></div><div class="close-actions"><button id="cancelQuit" class="secondary-button">取消退出</button><button id="discardQuit" class="secondary-button">不保存退出</button><button id="saveQuit" class="primary-button">保存并退出</button></div></dialog>
+<dialog id="closeDialog" class="dialog close-dialog" aria-labelledby="closeTitle"><div class="dialog-heading"><div><h2 id="closeTitle">保存文件修改？</h2><p id="closeDescription"></p></div></div><div class="close-actions"><button id="cancelClose" class="secondary-button">取消</button><button id="discardClose" class="secondary-button">不保存关闭</button><button id="saveClose" class="primary-button">保存并关闭</button></div></dialog>
+<dialog id="helpDialog" class="dialog help-dialog" aria-labelledby="helpTitle"><div class="dialog-heading"><div><h2 id="helpTitle">让命令，落在正确的位置</h2><p>命令定向工具 · 桌面版</p></div><button class="icon-button" data-close="helpDialog" aria-label="关闭说明" data-icon="close"></button></div><div class="help-content"><p>按住「选择目标」直接拖到目标后松开，点击命令或选中多行，再按发送。没有选区时，每次发送后会自动移到下一条有效命令。普通「发送」只发送一轮。点击右侧「重复发送」，按设置的指定轮数或持续循环发送当前命令或选区；字符间隔控制单条命令的输入速度，命令间隔控制相邻命令和跨轮等待。可随时暂停或停止。</p><p>「定时发送」支持多个独立任务。每个任务可绑定不同目标，倒计时后或在指定时间发送一次，并显示状态和剩余时间。暂停、编辑或删除仅影响该任务。系统睡眠错过的时间不会补发。每次启动只发送一轮全部指令。后台目标可同时发送，需要焦点的目标按整条指令排队。选择的指令保存为独立副本，标题、空行及整行注释会被忽略。请保持应用运行，重启后需重新绑定并启动。</p><dl><div><dt>保存当前文件</dt><dd><kbd>Ctrl S</kbd></dd></div><div><dt>发送当前内容</dt><dd><kbd>Ctrl Enter</kbd></dd></div><div><dt>查找文本</dt><dd><kbd>Ctrl F</kbd></dd></div><div><dt>关闭浮层 / 停止发送</dt><dd><kbd>Esc</kbd></dd></div></dl><div class="help-note">打开 UTF-8 TXT 支持多选；保存会写回原文件并保留原来的 BOM 和换行格式。发送时会固定当前目标与内容；暂停保留进度，停止取消剩余任务。Mac 需要辅助功能权限。不同终端的输入兼容性需要实际验证。</div></div><div class="dialog-footer"><span class="settings-footnote">不建立 SSH 或串口连接</span><button class="primary-button" data-close="helpDialog">知道了</button></div></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="app.js"></script>
+</body></html>
+
+
