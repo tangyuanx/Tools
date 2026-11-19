@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 
 const require=createRequire(import.meta.url);
 const {_electron:electron}=require('playwright');
-const root=fileURLToPath(new URL('../',import.meta.url));
+const root=path.resolve(fileURLToPath(new URL('../',import.meta.url)));
 const installed=process.argv[2];
 const temp=await mkdtemp(path.join(os.tmpdir(),'tools-workbench-'));
 const profile=path.join(temp,'profile');
@@ -19,10 +19,14 @@ try{
   await mkdir(evidence,{recursive:true});
   await writeFile(source,'[设备信息]\r\necho "设备状态"\r\n\r\n[接口]\r\necho "检查"\r\n');
   await writeFile(path.join(profile,'session.json'),JSON.stringify({paths:[source],active:source}));
+  const env={...process.env};
+  delete env.ELECTRON_RUN_AS_NODE;
   desktop=await electron.launch({
-    executablePath:installed||require('electron'),
+    ...(installed?{executablePath:installed}:{}),
     args:[...(installed?[]:[root]),'--user-data-dir='+profile],
-    timeout:30000,
+    cwd:root,
+    env,
+    timeout:45000,
   });
   const page=await desktop.firstWindow();
   page.setDefaultTimeout(15000);

@@ -270,7 +270,7 @@ app.whenReady().then(async()=>{
   if(process.platform!=='darwin')win.removeMenu();
   log.connect();
   void win.loadURL(page);
-}).catch(error=>{log?.close();dialog.showErrorBox('无法启动工具工作台',error.stack||error.message);app.exit(1);});
+}).catch(error=>{log?.close();console.error(error);dialog.showErrorBox('无法启动工具工作台',error.stack||error.message);app.exit(1);});
 app.on('before-quit',event=>{if(win&&!approvedClose){event.preventDefault();void requestClose();}});
 app.on('window-all-closed',()=>app.quit());
 }
