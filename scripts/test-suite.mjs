@@ -13,7 +13,7 @@ const temp=await mkdtemp(path.join(os.tmpdir(),'tools-workbench-'));
 const profile=path.join(temp,'profile');
 const evidence=path.join(root,'test-output','suite');
 const source=path.join(temp,'台架巡检.txt');
-let desktop;
+let desktop, child;
 try{
   await mkdir(profile,{recursive:true});
   await mkdir(evidence,{recursive:true});
@@ -28,6 +28,7 @@ try{
     env,
     timeout:45000,
   });
+  child=desktop.process();
   const page=await desktop.firstWindow();
   page.setDefaultTimeout(15000);
   const errors=[];
@@ -74,13 +75,13 @@ try{
   assert.deepEqual(errors,[]);
   await page.locator('#closeWindow').click();
   await new Promise((resolve,reject)=>{
-    const process=desktop.process();
-    if(process.exitCode!==null){resolve();return;}
+    if(child.exitCode!==null){resolve();return;}
     const timer=setTimeout(()=>reject(new Error('窗口关闭超时')),10000);
-    process.once('exit',()=>{clearTimeout(timer);resolve();});
+    child.once('exit',()=>{clearTimeout(timer);resolve();});
   });
+  assert.equal(child.exitCode,0);
   console.log('Tool switching, editor selection, tool directory, log engine startup, pin and app exit passed.');
 }finally{
-  if(desktop&&desktop.process().exitCode===null)await desktop.close();
+  if(child&&child.exitCode===null)await desktop.close().catch(()=>child.kill());
   await rm(temp,{recursive:true,force:true,maxRetries:4,retryDelay:200});
 }
